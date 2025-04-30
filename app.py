@@ -1,22 +1,16 @@
 import streamlit as st
 import pandas as pd
-import gspread
-from oauth2client.service_account import ServiceAccountCredentials
 import plotly.express as px
 
-# -----------------------
-# ตั้งค่าเชื่อมต่อ Google Sheets
-# -----------------------
-scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-credentials = ServiceAccountCredentials.from_json_keyfile_name("service_account.json", scope)
-gc = gspread.authorize(credentials)
+# ลิงก์ CSV ที่แปลงจาก Google Sheet (ต้องเปิด Sheet เป็น "Anyone with the link can view")
+csv_url = "https://docs.google.com/spreadsheets/d/1ZSu9Rme3NL96zTuLObDdzMJtHrAlOQimn_uGiYAqduw/export?format=csv&gid=0"
 
-# เปิด Google Sheet
-worksheet = gc.open("streamlit-water-level").sheet1
-data = worksheet.get_all_records()
+@st.cache_data
+def load_data():
+    return pd.read_csv(csv_url)
 
-# แปลงเป็น DataFrame และจัดการ datetime
-df = pd.DataFrame(data)
+# โหลดและเตรียมข้อมูล
+df = load_data()
 df['datetime'] = pd.to_datetime(df['datetime'], errors='coerce', dayfirst=True)
 df = df.sort_values(by='datetime')
 
